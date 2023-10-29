@@ -6,7 +6,7 @@ fn main() -> Result<()> {
     let pf = PlayerFinder::new()?;
     let players = pf.find_all()?;
 
-    let mut tracker = players[0].track_progress(1000/20)?;
+    let mut tracker = players[0].track_progress(400)?;
 
     let icon = IconSource::Data{data: gen_icon(0.0), height: RES, width: RES};
 
@@ -19,9 +19,7 @@ fn main() -> Result<()> {
             + tick.progress.age().as_millis() as f64 
             * tick.progress.playback_rate();
         let total = tick.progress.length().unwrap().as_millis();
-        println!("{elapsed}s/{total}s!");
         let prog = elapsed as f32 / total as f32;
-        println!("{prog}");
 
         tray.set_icon(
             IconSource::Data{data: gen_icon(prog), height: RES, width: RES}
@@ -29,7 +27,7 @@ fn main() -> Result<()> {
     }
 }
 
-const RES: i32 = 32;
+const RES: i32 = 8;
 const LEN: usize = (RES*RES) as usize;
 
 fn gen_icon(prog: f32) -> Vec<u8> {
@@ -39,7 +37,7 @@ fn gen_icon(prog: f32) -> Vec<u8> {
         let y = pix / RES as usize;
         icon.push(1);
         icon.push(
-            if prog > x as f32 / RES as f32 {
+            if prog > pix as f32 / LEN as f32 {
                 255
             } else {
                 127
