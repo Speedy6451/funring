@@ -4,6 +4,7 @@ use anyhow::Result;
 use tray_item::IconSource;
 use tray_item::TrayItem;
 use glam::UVec2;
+use glam::Vec2;
 fn main() -> Result<()> {
     let pf = PlayerFinder::new()?;
     let players = pf.find_all()?;
@@ -17,9 +18,7 @@ fn main() -> Result<()> {
     println!("Hello, {}!", players[0].identity());
     loop {
         let tick = tracker.tick();
-        let elapsed = tick.progress.position().as_millis() as f64
-            + tick.progress.age().as_millis() as f64 
-            * tick.progress.playback_rate();
+        let elapsed = tick.progress.position().as_millis() as f64;
         let total = tick.progress.length().unwrap().as_millis();
         let prog = elapsed as f32 / total as f32;
         let playing = tick.progress.playback_status() == PlaybackStatus::Playing;
@@ -30,15 +29,14 @@ fn main() -> Result<()> {
     }
 }
 
-const RES: i32 = 8;
+const RES: i32 = 64;
 const LEN: usize = (RES*RES) as usize;
 
 fn gen_icon(
     prog: f32,
     playing: bool,
 ) -> Vec<u8> {
-    let mut icon = Vec::with_capacity(LEN*4);
-    (0..LEN*4).for_each(|_| icon.push(0));
+    let mut icon = vec![0; LEN*4];
     for pix in 0..(LEN) {
         let x = pix % RES as usize;
         let y = pix / RES as usize;
@@ -54,17 +52,28 @@ fn gen_icon(
 
 // TODO: integrate rust-gpu
 fn icon_cs(
-    pix: UVec2,
+    idx: UVec2,
     progress: f32,
     playing: bool,
     buf: &mut [u8],
 ) {
-    let idx = (pix.y * RES as u32  + pix.x) as usize;
-    let pix = &mut buf[4*idx..4*idx+4];
+    let index = (idx.y * RES as u32  + idx.x) as usize;
+    let pix = &mut buf[4*index..4*index+4];
     pix[0] = 1;
 
-    if progress > idx as f32 / LEN as f32 {
+    let center = Vec2::splat(RES as f32 /2.0);
+    let idx = idx.as_vec2()-center;
+    let radius = idx.length() / RES as f32 * 2.0;
+    let theta = std::f32::consts::PI - f32::atan2(idx.x, idx.y);
+
+    let offset = theta - progress * std::f32::consts::TAU;
+
+    if offset < 0.0 && 0.6 < radius && radius < 0.8 {
         pix[1] = 255;
+        pix[2] = 0;
+        pix[3] = 0;
+    } else if 1.0 > radius {
+        pix[1] = 10;
         pix[2] = 0;
         pix[3] = 0;
     } else {
