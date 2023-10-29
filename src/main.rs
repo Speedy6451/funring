@@ -15,8 +15,10 @@ fn main() -> Result<()> {
     println!("Hello, {}!", players[0].identity());
     loop {
         let tick = tracker.tick();
-        let elapsed = tick.progress.position().as_secs();
-        let total = tick.progress.length().unwrap().as_secs();
+        let elapsed = tick.progress.position().as_millis() as f64
+            + tick.progress.age().as_millis() as f64 
+            * tick.progress.playback_rate();
+        let total = tick.progress.length().unwrap().as_millis();
         println!("{elapsed}s/{total}s!");
         let prog = elapsed as f32 / total as f32;
         println!("{prog}");
@@ -37,10 +39,10 @@ fn gen_icon(prog: f32) -> Vec<u8> {
         let y = pix / RES as usize;
         icon.push(1);
         icon.push(
-            if prog / 256.0  > x as f32 / RES as f32 {
+            if prog > x as f32 / RES as f32 {
                 255
             } else {
-                0
+                127
             });
         icon.push(0);
         icon.push(0);
