@@ -7,5 +7,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.75"
+gtk = "0.18.1"
 mpris = "2.0.1"
 tray-icon = "0.10.0"

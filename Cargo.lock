@@ -386,6 +386,7 @@ name = "funring"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "gtk",
  "mpris",
  "tray-icon",
 ]
