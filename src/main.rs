@@ -1,3 +1,5 @@
+#![feature(test)]
+
 use std::collections::hash_map::DefaultHasher;
 use std::hash::Hash;
 use std::hash::Hasher;
@@ -37,14 +39,11 @@ fn main() -> Result<()> {
         };
         if !last_hash.replace(hash).is_some_and(|h| h == hash) {
             tray.set_icon(IconSource::Data{data: buffer, height: RES, width: RES})?;
-            println!("wrote");
-        } else {
-            println!("abstained");
         }
     }
 }
 
-const RES: i32 = 64;
+const RES: i32 = 32;
 const LEN: usize = (RES*RES) as usize;
 
 fn gen_icon(
@@ -83,7 +82,7 @@ fn icon_cs(
 
     let offset = theta - progress * std::f32::consts::TAU;
 
-    if offset < 0.0 && 0.6 < radius && radius < 0.8 {
+    if offset < 0.0 && 0.5 < radius && radius < 1.0 {
         pix[1] = if playing {255} else {0};
         pix[2] = if playing {0} else {95};
         pix[3] = 0;
@@ -95,5 +94,20 @@ fn icon_cs(
         pix[1] = 0;
         pix[2] = 0;
         pix[3] = 0;
+    }
+}
+
+extern crate test;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use test::Bencher;
+
+    use crate::gen_icon;
+
+    #[bench]
+    fn generate_icon(b: &mut Bencher) {
+        b.iter(|| gen_icon(0.5, true));
     }
 }
