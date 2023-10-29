@@ -1,3 +1,7 @@
+use std::collections::hash_map::DefaultHasher;
+use std::hash::Hash;
+use std::hash::Hasher;
+
 use mpris::PlaybackStatus;
 use mpris::PlayerFinder;
 use anyhow::Result;
@@ -9,11 +13,13 @@ fn main() -> Result<()> {
     let pf = PlayerFinder::new()?;
     let players = pf.find_all()?;
 
-    let mut tracker = players[0].track_progress(400)?;
+    let mut tracker = players[0].track_progress(25)?;
 
     let icon = IconSource::Data{data: gen_icon(0.0, false), height: RES, width: RES};
 
     let mut tray = TrayItem::new("funring", icon)?;
+
+    let mut last_hash = None;
 
     println!("Hello, {}!", players[0].identity());
     loop {
@@ -23,9 +29,18 @@ fn main() -> Result<()> {
         let prog = elapsed as f32 / total as f32;
         let playing = tick.progress.playback_status() == PlaybackStatus::Playing;
 
-        tray.set_icon(
-            IconSource::Data{data: gen_icon(prog, playing), height: RES, width: RES}
-        )?;
+        let buffer = gen_icon(prog, playing);
+        let hash = {
+            let mut hasher = DefaultHasher::new();
+            buffer.hash(&mut hasher);
+            hasher.finish()
+        };
+        if !last_hash.replace(hash).is_some_and(|h| h == hash) {
+            tray.set_icon(IconSource::Data{data: buffer, height: RES, width: RES})?;
+            println!("wrote");
+        } else {
+            println!("abstained");
+        }
     }
 }
 
