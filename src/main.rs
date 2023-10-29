@@ -8,7 +8,7 @@ fn main() -> Result<()> {
     let pf = PlayerFinder::new()?;
     let players = pf.find_all()?;
 
-    let icon = Icon::from_rgba(vec![0,1,0,0], 1, 1)?;
+    let icon = Icon::from_rgba(gen_icon(), 32, 32)?;
 
     // gtk thread
     std::thread::spawn(|| {
@@ -32,11 +32,22 @@ fn main() -> Result<()> {
         let player = &players[0];
         let elapsed = player.get_position().unwrap().as_secs();
         let total = player.get_metadata().unwrap().length().unwrap().as_secs();
-        println!("{elapsed}s/{total}s!");
+        //println!("{elapsed}s/{total}s!");
 
         for event in tray_channel.try_iter() {
             println!("{:?}: event", event)
         }
     })?;
     Ok(())
+}
+
+fn gen_icon() -> Vec<u8> {
+    let mut icon = Vec::new();
+    for pix in 0..(32*32) {
+        icon.push(1);
+        icon.push(1);
+        icon.push(1);
+        icon.push(1);
+    }
+    icon
 }
