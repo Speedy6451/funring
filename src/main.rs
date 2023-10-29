@@ -8,7 +8,7 @@ fn main() -> Result<()> {
 
     let mut tracker = players[0].track_progress(1000/20)?;
 
-    let icon = IconSource::Data{data: gen_icon(0), height: RES, width: RES};
+    let icon = IconSource::Data{data: gen_icon(0.0), height: RES, width: RES};
 
     let mut tray = TrayItem::new("funring", icon)?;
 
@@ -18,24 +18,27 @@ fn main() -> Result<()> {
         let elapsed = tick.progress.position().as_secs();
         let total = tick.progress.length().unwrap().as_secs();
         println!("{elapsed}s/{total}s!");
-        let prog = elapsed as f32 / total as f32 * 256.0;
+        let prog = elapsed as f32 / total as f32;
         println!("{prog}");
 
         tray.set_icon(
-            IconSource::Data{data: gen_icon(prog as u8), height: RES, width: RES}
+            IconSource::Data{data: gen_icon(prog), height: RES, width: RES}
         )?;
     }
 }
 
-const RES: i32 = 64;
+const RES: i32 = 32;
+const LEN: usize = (RES*RES) as usize;
 
-fn gen_icon(red: u8) -> Vec<u8> {
-    let mut icon = Vec::new();
-    for pix in 0..(RES*RES) {
+fn gen_icon(prog: f32) -> Vec<u8> {
+    let mut icon = Vec::with_capacity(LEN);
+    for pix in 0..(LEN) {
+        let x = pix % RES as usize;
+        let y = pix / RES as usize;
         icon.push(1);
         icon.push(
-            if red as f32 > (pix as f32 / (RES * RES) as f32 * 256.0) {
-                red
+            if prog / 256.0  > x as f32 / RES as f32 {
+                255
             } else {
                 0
             });
