@@ -69,11 +69,11 @@ fn icon_cs(
     let offset = theta - progress * std::f32::consts::TAU;
 
     if offset < 0.0 && 0.6 < radius && radius < 0.8 {
-        pix[1] = 255;
-        pix[2] = 0;
+        pix[1] = if playing {255} else {0};
+        pix[2] = if playing {0} else {95};
         pix[3] = 0;
     } else if 1.0 > radius {
-        pix[1] = 10;
+        pix[1] = if playing {60} else {20};
         pix[2] = 0;
         pix[3] = 0;
     } else {
