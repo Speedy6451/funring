@@ -6,6 +6,7 @@ use std::hash::Hasher;
 
 use anyhow::Result;
 use glam::UVec2;
+use glam::UVec3;
 use glam::Vec2;
 use mpris::PlaybackStatus;
 use mpris::PlayerFinder;
@@ -73,7 +74,7 @@ fn gen_icon(prog: f32, playing: bool) -> Vec<u8> {
 fn icon_cs(idx: UVec2, progress: f32, playing: bool, buf: &mut [u8]) {
     let index = (idx.y * RES as u32 + idx.x) as usize;
     let pix = &mut buf[4 * index..4 * index + 4];
-    pix[0] = 1;
+    pix[0] = 0;
 
     let center = Vec2::splat(RES as f32 / 2.0);
     let idx = idx.as_vec2() - center;
@@ -82,12 +83,12 @@ fn icon_cs(idx: UVec2, progress: f32, playing: bool, buf: &mut [u8]) {
 
     let offset = theta - progress * std::f32::consts::TAU;
 
-    if offset < 0.0 && 0.5 < radius && radius < 1.0 {
+    if offset < 0.0 && (0.5..1.0).contains(&radius) {
         pix[1] = if playing { 255 } else { 0 };
         pix[2] = if playing { 0 } else { 95 };
         pix[3] = 0;
-    } else if 1.0 > radius {
-        pix[1] = if playing { 60 } else { 20 };
+    } else if (0.5..1.0).contains(&radius) {
+        pix[1] = if playing { 6 } else { 20 };
         pix[2] = 0;
         pix[3] = 0;
     } else {
