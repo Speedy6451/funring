@@ -1,12 +1,12 @@
 #![feature(test)]
 
 use std::collections::hash_map::DefaultHasher;
+use std::env::args_os;
 use std::hash::Hash;
 use std::hash::Hasher;
 
 use anyhow::Result;
 use glam::UVec2;
-use glam::UVec3;
 use glam::Vec2;
 use mpris::PlaybackStatus;
 use mpris::PlayerFinder;
@@ -16,7 +16,17 @@ fn main() -> Result<()> {
     let pf = PlayerFinder::new()?;
     let players = pf.find_all()?;
 
-    let mut tracker = players[0].track_progress(25)?;
+    for player in players.iter().map(|p| p.identity()) {
+        println!("found {player}");
+    }
+
+    let player = if let Some(name) = args_os().nth(1) {
+        pf.find_by_name(&name.into_string().unwrap())?
+    } else {
+        pf.find_active()?
+    };
+
+    let mut tracker = player.track_progress(25)?;
 
     let icon = IconSource::Data {
         data: gen_icon(0.0, false),
@@ -28,11 +38,13 @@ fn main() -> Result<()> {
 
     let mut last_hash = None;
 
-    println!("Hello, {}!", players[0].identity());
+    println!("tracking {}", player.identity());
     loop {
         let tick = tracker.tick();
         let elapsed = tick.progress.position().as_millis() as f64;
-        let total = tick.progress.length().unwrap().as_millis();
+        let total = tick.progress.length();
+        if total.is_none() {continue};
+        let total = total.unwrap().as_millis();
         let prog = elapsed as f32 / total as f32;
         let playing = tick.progress.playback_status() == PlaybackStatus::Playing;
 
@@ -85,6 +97,7 @@ fn icon_cs(idx: UVec2, progress: f32, playing: bool, buf: &mut [u8]) {
 
     if offset < 0.0 && (0.5..1.0).contains(&radius) {
         pix[1] = if playing { 255 } else { 0 };
+        //pix[1] = if playing { 255 - (offset * -55.0) as u8 } else { 0 };
         pix[2] = if playing { 0 } else { 95 };
         pix[3] = 0;
     } else if (0.5..1.0).contains(&radius) {
