@@ -1,6 +1,6 @@
-# Funring
+# Funring ![representative screenshot](https://user-images.githubusercontent.com/37423245/279222372-2005566f-771e-4d19-9dd2-244d3cc4ed0c.png)
 
-A fun ring for your system tray that shows the status of the currently playing song
+A fun ring for your system tray that shows the status of the currently playing song(s)
 
 `funring [player]`
 
